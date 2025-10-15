@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUCKCLUB - Laboratorio di Grafomania</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime:wght@400;700&family=Special+Elite&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="black" stroke="white" stroke-width="1.5" d="M0,0 L0,14 L4,10 L7,16 L9,15 L6,9 L11,9 Z"/></svg>'), auto;
+        }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: #f5f1e8;
+            color: #1a1a1a;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Paper texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.02) 2px, rgba(0,0,0,.02) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.02) 2px, rgba(0,0,0,.02) 4px);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.5;
+        }
+
+        /* Ink splatter decorations */
+        .ink-splatter {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .splatter-1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #ff0000 20%, transparent 70%);
+            top: 10%;
+            right: 5%;
+            filter: blur(20px);
+        }
+
+        .splatter-2 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #0057ff 20%, transparent 70%);
+            bottom: 15%;
+            left: 10%;
+            filter: blur(25px);
+        }
+
+        .splatter-3 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #ffeb00 30%, transparent 80%);
+            top: 50%;
+            right: 15%;
+            filter: blur(30px);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(245, 241, 232, 0.95);
+            padding: 25px 50px;
+            z-index: 100;
+            border-bottom: 6px solid #1a1a1a;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 0 rgba(255, 0, 0, 0.3);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            position: relative;
+        }
+
+        .logo-reverse {
+            display: inline-block;
+            transform: scaleX(-1);
+            color: #ff0000;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .logo-reverse::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: #ffeb00;
+            z-index: -1;
+        }
+
+        .logo-normal {
+            color: #0057ff;
+            text-shadow: -3px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+        }
+
+        nav a {
+            color: #1a1a1a;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 8px 15px;
+            transition: all 0.3s;
+            position: relative;
+            text-transform: uppercase;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #ff0000;
+            transition: width 0.3s;
+        }
+
+        nav a:hover::before {
+            width: 100%;
+        }
+
+        nav a:hover {
+            color: #ff0000;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f1e8;
+            position: relative;
+            padding: 120px 40px 80px;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            max-width: 1200px;
+        }
+
+        .hero-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(80px, 15vw, 180px);
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero-logo .reverse {
+            display: inline-block;
+            transform: scaleX(-1);
+            color: #ff0000;
+            position: relative;
+        }
+
+        .hero-logo .reverse::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: -10px;
+            right: -10px;
+            height: 30px;
+            background: #ffeb00;
+            z-index: -1;
+            transform: skew(-3deg);
+        }
+
+        .hero-logo .normal {
+            color: #0057ff;
+            position: relative;
+        }
+
+        .hero-subtitle {
+            font-family: 'Special Elite', monospace;
+            font-size: clamp(18px, 3vw, 28px);
+            color: #1a1a1a;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+            padding: 15px 30px;
+            background: #fff;
+            border: 3px solid #1a1a1a;
+            box-shadow: 8px 8px 0 rgba(255, 0, 0, 0.3);
+        }
+
+        .hero-description {
+            font-size: 20px;
+            max-width: 800px;
+            margin: 0 auto 50px;
+            line-height: 1.8;
+            color: #333;
+            font-style: italic;
+        }
+
+        .cta-button {
+            background: #1a1a1a;
+            color: #ffeb00;
+            padding: 20px 50px;
+            border: 5px solid #1a1a1a;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: 8px;
+            bottom: 8px;
+            background: #ff0000;
+            z-index: -1;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translate(-4px, -4px);
+            color: #fff;
+        }
+
+        .cta-button:hover::before {
+            top: 8px;
+            left: 8px;
+        }
+
+        /* Scribble decorations */
+        .scribble {
+            position: absolute;
+            stroke: #1a1a1a;
+            stroke-width: 3;
+            fill: none;
+            opacity: 0.1;
+        }
+
+        /* Sections */
+        section {
+            min-height: 80vh;
+            padding: 120px 50px 80px;
+            position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(60px, 10vw, 100px);
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            right: 20px;
+            height: 15px;
+            background: #0057ff;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: #666;
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .service-card {
+            background: #fff;
+            padding: 40px 30px;
+            border: 4px solid #1a1a1a;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: 8px;
+            bottom: 8px;
+            background: #ffeb00;
+            z-index: -1;
+            transition: all 0.3s;
+        }
+
+        .service-card:nth-child(2)::before {
+            background: #ff0000;
+        }
+
+        .service-card:nth-child(3)::before {
+            background: #0057ff;
+        }
+
+        .service-card:hover {
+            transform: translate(-5px, -5px);
+        }
+
+        .service-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .service-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .service-desc {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 50px;
+        }
+
+        .project-card {
+            background: #fff;
+            border: 5px solid #1a1a1a;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background: #ffeb00;
+            transform: rotate(45deg);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #ff0000 0%, #ffeb00 50%, #0057ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 80px;
+            color: #fff;
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+        }
+
+        .project-info {
+            padding: 30px;
+            background: #fff;
+        }
+
+        .project-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .project-category {
+            font-size: 14px;
+            color: #ff0000;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .project-desc {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* About */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-top: 60px;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 500px;
+            background: 
+                linear-gradient(45deg, #ff0000 25%, transparent 25%, transparent 75%, #ff0000 75%),
+                linear-gradient(45deg, #ff0000 25%, transparent 25%, transparent 75%, #ff0000 75%),
+                linear-gradient(135deg, #0057ff 25%, transparent 25%, transparent 75%, #0057ff 75%),
+                linear-gradient(135deg, #0057ff 25%, #ffeb00 25%, #ffeb00 75%, #0057ff 75%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px, 0 0, 20px 20px;
+            border: 8px solid #1a1a1a;
+            position: relative;
+        }
+
+        .about-image::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: 15px;
+            bottom: 15px;
+            border: 3px solid #ff0000;
+            z-index: -1;
+        }
+
+        .about-text {
+            font-size: 18px;
+            line-height: 2;
+        }
+
+        .about-text p {
+            margin-bottom: 25px;
+        }
+
+        .about-text strong {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .highlight-red { color: #ff0000; }
+        .highlight-blue { color: #0057ff; }
+        .highlight-yellow { 
+            background: #ffeb00;
+            padding: 2px 8px;
+        }
+
+        /* Contact */
+        .contact-content {
+            max-width: 800px;
+            margin: 60px auto 0;
+            background: #fff;
+            padding: 60px;
+            border: 6px solid #1a1a1a;
+            position: relative;
+        }
+
+        .contact-content::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            right: 12px;
+            bottom: 12px;
+            background: #0057ff;
+            z-index: -1;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        input, textarea {
+            background: #f5f1e8;
+            border: 3px solid #1a1a1a;
+            color: #1a1a1a;
+            padding: 15px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff0000;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: #1a1a1a;
+            color: #ffeb00;
+            border: 5px solid #1a1a1a;
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: 8px;
+            bottom: 8px;
+            background: #ff0000;
+            z-index: -1;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translate(-4px, -4px);
+            color: #fff;
+        }
+
+        .submit-btn:hover::before {
+            top: 8px;
+            left: 8px;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a1a1a;
+            color: #f5f1e8;
+            padding: 60px 40px;
+            text-align: center;
+            border-top: 8px solid #ff0000;
+            margin-top: 100px;
+        }
+
+        .footer-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 64px;
+            color: #ffeb00;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .footer-text {
+            font-size: 16px;
+            color: #999;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            nav ul { 
+                flex-direction: column; 
+                gap: 15px;
+                align-items: flex-start;
+            }
+            .about-content { 
+                grid-template-columns: 1fr; 
+            }
+            section {
+                padding: 100px 30px 60px;
+            }
+            .contact-content {
+                padding: 40px 30px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            nav {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Ink splatters -->
+    <div class="ink-splatter splatter-1"></div>
+    <div class="ink-splatter splatter-2"></div>
+    <div class="ink-splatter splatter-3"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-content">
+            <div class="logo">
+                <span class="logo-reverse">KCUF</span>
+                <span class="logo-normal">CLUB</span>
+            </div>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#servizi">Servizi</a></li>
+                <li><a href="#progetti">Progetti</a></li>
+                <li><a href="#chi-sono">Chi Sono</a></li>
+                <li><a href="#contatti">Contatti</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <svg class="scribble" style="top: 15%; left: 5%; width: 200px; height: 200px;">
+            <path d="M20,20 Q100,80 180,40 T180,150" />
+        </svg>
+        <svg class="scribble" style="bottom: 10%; right: 8%; width: 250px; height: 250px;">
+            <circle cx="125" cy="125" r="100" />
+        </svg>
+        
+        <div class="hero-content">
+            <h1 class="hero-logo">
+                <span class="reverse">KCUF</span><span class="normal">CLUB</span>
+            </h1>
+            <p class="hero-subtitle">LABORATORIO DI GRAFOMANIA 2025</p>
+            <p class="hero-description">
+                Disegniamo ovunque. Creiamo tutto. Dalla carta al muro, dal tessuto alla ceramica. 
+                Siamo ossessionati dal segno, dalla linea, dal colore. Siamo grafomaniaci.
+            </p>
+            <a href="#servizi" class="cta-button">Scopri cosa facciamo</a>
+        </div>
+    </section>
+
+    <!-- Servizi -->
+    <section id="servizi">
+        <div class="section-header">
+            <h2 class="section-title">COSA FACCIAMO</h2>
+            <p class="section-subtitle">Dalla grafica tradizionale al design di spazi. Tutto è una superficie da disegnare.</p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">✏️</div>
+                <h3 class="service-title">GRAFICA</h3>
+                <p class="service-desc">Manifesti, copertine, identità visive. Design editoriale e tipografia sperimentale. Stampe serigrafiche e risograph.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">👕</div>
+                <h3 class="service-title">FASHION</h3>
+                <p class="service-desc">Illustrazioni su tessuto, pattern design, capsule collection. Stampe uniche su abbigliamento e accessori.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🎨</div>
+                <h3 class="service-title">ILLUSTRAZIONE</h3>
+                <p class="service-desc">Disegno a mano, collage, acquerello. Progetti editoriali, fumetti, character design e artwork personalizzati.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🏛️</div>
+                <h3 class="service-title">ALLESTIMENTI</h3>
+                <p class="service-desc">Design e realizzazione di spazi. Murales, installazioni, scenografie. Trasformiamo ambienti in opere grafiche.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">☕</div>
+                <h3 class="service-title">OGGETTISTICA</h3>
+                <p class="service-desc">Tazze, poster, adesivi, tote bag. Ogni oggetto diventa una tela. Produzione artigianale e personalizzata.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">📐</div>
+                <h3 class="service-title">CUSTOM</h3>
+                <p class="service-desc">Progetti su misura. Qualsiasi superficie, qualsiasi idea. Se si può disegnare, lo facciamo.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progetti -->
+    <section id="progetti">
+        <div class="section-header">
+            <h2 class="section-title">PROGETTI</h2>
+            <p class="section-subtitle">Una selezione dei nostri lavori più recenti</p>
+        </div>
+        
+        <div class="projects-grid">
+            <div class="project-card">
+                <div class="project-image">01</div>
+                <div class="project-info">
+                    <p class="project-category">Grafica Editoriale</p>
+                    <h3 class="project-title">MANIFESTO FESTIVAL</h3>
+                    <p class="project-desc">Serie di manifesti per festival culturale. Tipografia sperimentale e texture analogiche.</p>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">02</div>
+                <div class="project-info">
+                    <p class="project-category">Fashion Design</p>
+                    <h3 class="project-title">CAPSULE BAUHAUS</h3>
+                    <p class="project-desc">Collezione limited edition con pattern geometrici stampati a mano su cotone organico.</p>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">03</div>
+                <div class="project-info">
+                    <p class="project-category">Murale</p>
+                    <h3 class="project-title">PARETE URBANA</h3>
+                    <p class="project-desc">Intervento su facciata 30mq. Composizione astratta ispirata al De Stijl.</p>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">04</div>
+                <div class="project-info">
+                    <p class="project-category">Illustrazione</p>
+                    <h3 class="project-title">SERIE ACQUERELLI</h3>
+                    <p class="project-desc">12 illustrazioni originali per libro d'artista. Tecnica mista su carta cotone.</p>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">05</div>
+                <div class="project-info">
+                    <p class="project-category">Oggettistica</p>
+                    <h3 class="project-title">CERAMICHE GRAFICHE</h3>
+                    <p class="project-desc">Linea di tazze e piatti decorati a mano. Ogni pezzo è unico.</p>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-image">06</div>
+                <div class="project-info">
+                    <p class="project-category">Branding</p>
+                    <h3 class="project-title">IDENTITÀ CAFE</h3>
+                    <p class="project-desc">Identità visiva completa per caffetteria. Logo, menu, packaging, segnaletica.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chi Sono -->
+    <section id="chi-sono">
+        <div class="section-header">
+            <h2 class="section-title">CHI SIAMO</h2>
+            <p class="section-subtitle">Maniaci del segno grafico dal 2025</p>
+        </div>
+        
+        <div class="about-content">
+            <div class="about-image"></div>
+            <div class="about-text">
+                <p>
+                    <strong class="highlight-red">FUCKCLUB</strong> nasce dall'ossessione compulsiva di disegnare. 
+                    Su tutto. Sempre. Ovunque.
+                </p>
+                <p>
+                    Siamo un collettivo di <strong class="highlight-blue">grafomaniaci</strong> che non distingue 
+                    tra carta, muro, tessuto o ceramica. <span class="highlight-yellow">Tutto è una superficie potenziale.</span>
+                </p>
+                <p>
+                    Dal poster alla parete, dalla t-shirt alla tazza. Progettiamo spazi, creiamo pattern, 
+                    illustriamo storie. La nostra estetica è un mix di Bauhaus, punk DIY e stamperia artigianale.
+                </p>
+                <p
